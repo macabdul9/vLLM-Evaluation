@@ -1,0 +1,21 @@
+You are given a polynomial expression in the variable x. Your task is to fully simplify it by expanding all products and collecting like terms, writing the result as a single polynomial in standard form (terms ordered by descending degree).
+
+Output format rules:
+- Use * between every coefficient and variable: write 3*x^2, not 3x^2
+- Use ^ for exponents: write x^3, not x³ or x**3
+- Omit the coefficient for terms where it equals 1: write x^2, not 1*x^2
+- Use + and - between terms with a single space on each side
+
+Example:
+Expression: (2*x + 3) * (x + 4) - 5*x
+
+Step 1: 2*x^2 + 8*x + 3*x + 12 - 5*x
+Step 2: 2*x^2 + (8 + 3 - 5)*x + 12
+Answer: \boxed{{2*x^2 + 6*x + 12}}
+
+---
+
+Solve step by step, showing each expansion and combination of like terms. At the end, write your final simplified polynomial in the format:
+Answer: \boxed{{simplified_expression}}
+
+Expression: {expression}

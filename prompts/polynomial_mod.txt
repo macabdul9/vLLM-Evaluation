@@ -1,0 +1,22 @@
+You are given a polynomial expression in the variable x. Your task is to fully simplify it by expanding all products and collecting like terms, then reduce every coefficient modulo {mod_base}. Write the result as a single polynomial in standard form (terms ordered by descending degree) with all coefficients in the range [0, {mod_base}).
+
+Output format rules:
+- Use * between every coefficient and variable: write 3*x^2, not 3x^2
+- Use ^ for exponents: write x^3, not x³ or x**3
+- Omit the coefficient for terms where it equals 1 after mod reduction: write x^2, not 1*x^2
+- Use + and - between terms with a single space on each side
+
+Example:
+Expression: (200*x + 150) * (80*x + 70)
+
+Step 1: 16000*x^2 + 14000*x + 12000*x + 10500
+Step 2: 16000*x^2 + 26000*x + 10500
+Apply mod 10000: 16000 mod 10000 = 6000, 26000 mod 10000 = 6000, 10500 mod 10000 = 500
+Answer: \boxed{{6000*x^2 + 6000*x + 500}}
+
+---
+
+Solve step by step, showing each expansion and combination of like terms, then apply modular reduction to each coefficient. At the end, write your final simplified polynomial in the format:
+Answer: \boxed{{simplified_expression}}
+
+Expression: {expression}

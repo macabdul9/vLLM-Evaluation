@@ -1,0 +1,18 @@
+# 1. Debug one model first
+python debug_eval.py --port 8000 --model Qwen3.5-0.8B
+
+# 2. Run all 4 in parallel (greedy + best-of-8, all prompts, all splits)
+bash scripts/run_evals.sh
+
+# 3. Greedy only
+bash scripts/run_evals.sh --decode greedy
+
+# 4. Watch logs
+tail -f logs/eval_Qwen3.5-*.log
+
+
+# thinking disabled by default (your case)
+python eval.py --model Qwen/Qwen3-4B --port 8000
+
+# thinking enabled
+python eval.py --model Qwen/Qwen3-4B --port 8000 --enable_thinking
