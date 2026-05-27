@@ -1,6 +1,6 @@
 # vLLM Evaluation — LLMMath Zero-Shot Benchmark
 
-Zero-shot evaluation of Qwen3.5 language models on the [LLMsHub/LLMMath-Eval](https://huggingface.co/datasets/LLMsHub/LLMMath-Eval) benchmark. Models are served locally via vLLM's OpenAI-compatible API and evaluated across arithmetic and polynomial tasks using greedy decoding and best-of-N majority voting.
+A framework for running zero-shot evaluations of open-weight models served via vLLM. Currently evaluates Qwen3.5 models on a custom math benchmark ([LLMsHub/LLMMath-Eval](https://huggingface.co/datasets/LLMsHub/LLMMath-Eval)) covering arithmetic and polynomial tasks, with support for both thinking and non-thinking modes, greedy decoding, and best-of-N majority voting.
 
 ---
 
