@@ -83,7 +83,7 @@ export HF_HOME=/path/to/hf_cache
 vLLMEvaluation/
 ├── launch_vllm_server.sh   # Start all 4 vLLM servers (one per GPU)
 ├── eval.py                 # Core evaluation script
-├── debug_eval.py           # Smoke-test a single model on a small sample
+├── debug_eval.py           # End-to-end test on a single model and sample
 ├── test_vllm.py            # Minimal connectivity test for a running server
 ├── test_vllm.sh            # Shell-based server smoke test
 ├── scripts/
@@ -131,12 +131,12 @@ for port in 8000 8001 8002 8003; do
 done
 ```
 
-### Step 2 — Smoke test (recommended)
+### Step 2 — Run a quick sanity check
 
-Before running the full evaluation, verify connectivity and the pipeline with a single sample:
+Run one sample through the full pipeline before committing to a multi-hour eval run:
 
 ```bash
-conda run -n lingua_260317 python debug_eval.py \
+conda run -n vllm-eval python debug_eval.py \
     --port 8000 --model Qwen3.5-0.8B --samples 1
 ```
 
@@ -182,17 +182,17 @@ bash scripts/run_evals.sh --decode greedy
 ### Single model, single split
 
 ```bash
-conda run -n lingua_260317 python eval.py \
+conda run -n vllm-eval python eval.py \
     --model Qwen3.5-0.8B \
     --port  8000 \
     --splits iid_arithmetic \
     --decode greedy
 ```
 
-### Enable chain-of-thought thinking mode
+### Enable Qwen Thinking Mode
 
 ```bash
-conda run -n lingua_260317 python eval.py \
+conda run -n vllm-eval python eval.py \
     --model Qwen3.5-0.8B \
     --port  8000 \
     --enable_thinking
@@ -228,7 +228,7 @@ OUT_DIR=/scratch/results bash scripts/run_evals.sh
 | `--best_of_n` | `8` | Number of samples for best-of-N voting |
 | `--max_tokens` | `4096` | Maximum tokens per completion |
 | `--workers` | `32` | Parallel threads per split |
-| `--enable_thinking` | `False` | Enable chain-of-thought thinking mode |
+| `--enable_thinking` | `False` | Enable Qwen thinking mode |
 
 ---
 
