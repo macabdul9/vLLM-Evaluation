@@ -12,7 +12,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-CONDA_ENV="${CONDA_ENV:-lingua_260317}"
+CONDA_ENV="${CONDA_ENV:-vllm-eval}"
 OUT_DIR="${OUT_DIR:-${REPO_DIR}/zero-shot-evals}"
 WORKERS="${WORKERS:-32}"
 EXTRA_ARGS="${*}"
