@@ -1,5 +1,5 @@
 # Configuration for vLLM Server
-MODEL="Qwen/Qwen3-4B"
+MODEL="Qwen/Qwen3.5-0.8B"
 PORT=8000
 GPU_ID=0
 
@@ -11,6 +11,7 @@ export CUDA_VISIBLE_DEVICES=$GPU_ID
 
 python3 -m vllm.entrypoints.openai.api_server \
     --model "$MODEL" \
+    --served-model-name "$MODEL" \
     --port "$PORT" \
     --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
     --trust-remote-code \

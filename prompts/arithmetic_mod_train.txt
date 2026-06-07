@@ -1,0 +1,6 @@
+You are given an arithmetic expression involving integers and the operations +, -, *, and /. Evaluate the expression following the standard order of operations: resolve parentheses first (innermost to outermost), then multiplication and division left to right, then addition and subtraction left to right. Give the final result modulo {mod_base}, i.e., as a non-negative integer in the range [0, {mod_base}). Note: if the raw result is negative, apply modulo to wrap it into the range (e.g., -77 mod 10000 = 9923).
+
+Solve step by step, reducing one sub-expression at a time until a single integer remains, then apply modular reduction. At the end, write your final result in the format:
+Answer: \boxed{{result}}
+
+Expression: {expression}

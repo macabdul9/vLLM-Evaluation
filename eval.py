@@ -16,7 +16,6 @@ Output structure:
 import argparse
 import json
 import re
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -74,6 +73,12 @@ def extract_answer(text: str) -> str | None:
     for line in reversed(text.strip().splitlines()):
         if line.lower().startswith("answer:"):
             return _normalise(line.split(":", 1)[1].strip())
+
+    # fallback: model output is just the bare answer (single non-empty line)
+    stripped = text.strip()
+    if stripped and "\n" not in stripped:
+        return _normalise(stripped)
+
     return None
 
 
@@ -169,8 +174,8 @@ def greedy_request(
 def best_of_n_request(
     client: OpenAI, model: str, prompt: str, max_tokens: int, n: int,
     enable_thinking: bool = False,
-) -> str:
-    """Return the most common answer among n samples (majority vote)."""
+) -> tuple[str | None, list[str]]:
+    """Return (majority-voted extracted answer, list of all raw response texts)."""
     resp = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -179,14 +184,14 @@ def best_of_n_request(
         n=n,
         extra_body={"chat_template_kwargs": {"enable_thinking": enable_thinking}},
     )
-    answers = [extract_answer(c.message.content) for c in resp.choices]
+    contents = [c.message.content for c in resp.choices]
+    answers = [extract_answer(c) for c in contents]
     votes: dict[str, int] = {}
     for a in answers:
         if a is not None:
             votes[a] = votes.get(a, 0) + 1
-    if votes:
-        return max(votes, key=votes.get)
-    return answers[0] if answers[0] is not None else ""
+    best = max(votes, key=lambda k: votes[k]) if votes else None
+    return best, contents
 
 
 # ---------------------------------------------------------------------------
@@ -206,6 +211,7 @@ def evaluate_split(
     workers: int,
     out_dir: Path,
     enable_thinking: bool = False,
+    max_samples: int | None = None,
 ) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     results_path = out_dir / "results.jsonl"
@@ -216,7 +222,10 @@ def evaluate_split(
         return json.loads(metrics_path.read_text())
 
     rows = list(split_ds)
-    results = []
+    if max_samples is not None:
+        rows = rows[:max_samples]
+
+    results: list[dict | None] = [None] * len(rows)
     correct = 0
 
     def run_one(row):
@@ -225,18 +234,18 @@ def evaluate_split(
         prompt = build_prompt(prompt_template, expr)
 
         if decode_mode == "greedy":
-            output = greedy_request(client, model_name, prompt, max_tokens, enable_thinking)
+            raw_output = greedy_request(client, model_name, prompt, max_tokens, enable_thinking)
+            pred = extract_answer(raw_output)
         else:
-            output = best_of_n_request(client, model_name, prompt, max_tokens, n, enable_thinking)
+            pred, raw_output = best_of_n_request(client, model_name, prompt, max_tokens, n, enable_thinking)
 
-        pred = extract_answer(output)
         ok = is_correct(pred, expected, rec_type=row.get("type", "polynomial"))
         return {
             "input": expr,
             "expected": expected,
             "predicted": pred,
             "correct": ok,
-            "raw_output": output,
+            "raw_output": raw_output,
             "split": split_name,
             "prompt": prompt_name,
             "decode": decode_mode,
@@ -245,13 +254,11 @@ def evaluate_split(
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(run_one, row): i for i, row in enumerate(rows)}
         for future in as_completed(futures):
+            idx = futures[future]
             result = future.result()
-            results.append(result)
+            results[idx] = result
             if result["correct"]:
                 correct += 1
-
-    # sort back to original order
-    results.sort(key=lambda r: rows.index(next(x for x in rows if x["input"] == r["input"])))
 
     with open(results_path, "w") as f:
         for r in results:
@@ -288,14 +295,17 @@ def main():
                         help="Subset of splits to run. Default: all.")
     parser.add_argument("--prompts", nargs="+", default=None,
                         help="Subset of prompt names to run. Default: all.")
-    parser.add_argument("--decode", nargs="+", default=["greedy", "best_of_n"],
-                        choices=["greedy", "best_of_n"])
+    parser.add_argument("--decode", nargs="+", default=["greedy"], choices=["greedy", "best_of_n"],
+                        help="Decoding strategy to use. Default: greedy.")
     parser.add_argument("--enable_thinking", action="store_true", default=False,
                         help="Enable chain-of-thought thinking mode (disabled by default).")
-    parser.add_argument("--best_of_n", type=int, default=8)
-    parser.add_argument("--max_tokens", type=int, default=4096)
+    parser.add_argument("--best_of_n", type=int, default=None,
+                        help="Number of samples for best-of-n decoding (default: 4 for best_of_n)")
+    parser.add_argument("--max_tokens", type=int, default=32768)
     parser.add_argument("--workers", type=int, default=32,
                         help="Parallel threads per split (vLLM handles concurrency server-side)")
+    parser.add_argument("--samples", type=int, default=1000,
+                        help="Max examples per split (default: full split).")
     args = parser.parse_args()
 
     client = OpenAI(base_url=f"http://{args.host}:{args.port}/v1", api_key="none")
@@ -341,6 +351,7 @@ def main():
                     workers=args.workers,
                     out_dir=out_dir,
                     enable_thinking=args.enable_thinking,
+                    max_samples=args.samples,
                 )
                 all_metrics.append(metrics)
 

@@ -1,24 +1,28 @@
-from openai import OpenAI
+from vllm import LLM, SamplingParams
 
-# Point to your local vLLM server
-client = OpenAI(
-    api_key="EMPTY",  # vLLM ignores this
-    base_url="http://localhost:8000/v1",
+# Configurae the sampling parameters (for thinking mode)
+sampling_params = SamplingParams(temperature=0.6, top_p=0.95, top_k=20, max_tokens=32768)
+
+# Initialize the vLLM engine
+#llm = LLM(model="Qwen/Qwen3-0.6B")
+
+llm = LLM(model="Qwen/Qwen3-0.6B")
+
+# Prepare the input to the model
+prompt = "Give me a short introduction to large language models."
+messages = [
+    {"role": "user", "content": prompt}
+]
+
+# Generate outputs
+outputs = llm.chat(
+    [messages], 
+    sampling_params,
+    chat_template_kwargs={"enable_thinking": True},  # Set to False to strictly disable thinking
 )
 
-response = client.chat.completions.create(
-    model="Qwen3.5-0.8B",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Explain transformers in simple terms."},
-    ],
-    temperature=0.0,
-    max_tokens=512,
-    extra_body={
-        "chat_template_kwargs": {
-            "enable_thinking": False
-        }
-    }
-)
-
-print(response.choices[0].message.content)
+# Print the outputs.
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")

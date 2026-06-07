@@ -32,18 +32,19 @@ def run_sample(client, model, row, prompt_name, template, decode_mode, n, max_to
     prompt = build_prompt(template, expr)
 
     if decode_mode == "greedy":
-        output = greedy_request(client, model, prompt, max_tokens, enable_thinking)
+        raw = greedy_request(client, model, prompt, max_tokens, enable_thinking)
+        pred = extract_answer(raw)
     else:
-        output = best_of_n_request(client, model, prompt, max_tokens, n, enable_thinking)
+        pred, raws = best_of_n_request(client, model, prompt, max_tokens, n, enable_thinking)
+        raw = raws[0]
 
-    pred = extract_answer(output)
     ok = is_correct(pred, expected, rec_type=row.get("type", "polynomial"))
 
     print(f"  input    : {expr[:80]}")
     print(f"  expected : {expected}")
     print(f"  predicted: {pred}")
     print(f"  correct  : {ok}")
-    print(f"  response : {output[:300].replace(chr(10), ' ')}")
+    print(f"  response : {raw[:300].replace(chr(10), ' ')}")
     return ok
 
 

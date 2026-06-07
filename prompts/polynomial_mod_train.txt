@@ -1,0 +1,12 @@
+You are given a polynomial expression in the variable x. Your task is to fully simplify it by expanding all products and collecting like terms, then reduce every coefficient modulo {mod_base}. Write the result as a single polynomial in standard form (terms ordered by descending degree) with all coefficients in the range [0, {mod_base}).
+
+Output format rules:
+- Use * between every coefficient and variable: write 3*x^2, not 3x^2
+- Use ^ for exponents without braces: write x^10, not x^{{10}}
+- Omit the coefficient for terms where it equals 1 after mod reduction: write x^2, not 1*x^2
+- Use + and - between terms with a single space on each side
+
+Solve step by step, showing each expansion and combination of like terms, then apply modular reduction to each coefficient. At the end, write your final simplified polynomial in the format:
+Answer: \boxed{{simplified_expression}}
+
+Expression: {expression}
