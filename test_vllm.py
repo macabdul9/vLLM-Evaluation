@@ -16,7 +16,7 @@ messages = [
 
 # Generate outputs
 outputs = llm.chat(
-    [messages], 
+    [messages],
     sampling_params,
     chat_template_kwargs={"enable_thinking": True},  # Set to False to strictly disable thinking
 )
